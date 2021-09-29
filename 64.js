@@ -9,7 +9,6 @@ var minPathSum = function (grid) {
   for (let i = 0; i < l; i++) {
     temp[i] = [];
   }
-  // console.log(temp)
   for (let i = 0; i < l; i++) {
     for (let j = 0; j < h; j++) {
       if (i == 0 && j == 0) {
@@ -23,7 +22,6 @@ var minPathSum = function (grid) {
       }
     }
   }
-  console.log(temp)
   return temp[l - 1][h - 1]
 };
 

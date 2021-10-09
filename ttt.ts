@@ -16,7 +16,7 @@ type EEEE = Exclude<keyof a2, keyof a1>
 type XXXX = Extract<keyof a2, keyof a1>
 type OOOO = Omit<a2, keyof a1>
 type NNNN = NonNullable<'1' | '2' | undefined | null>
-
+type CCCC = Record<'a' | 'b', { v: 1 }>
 
 type User = {
   id: number;
@@ -279,3 +279,112 @@ type Bar = {
 type Merge<FirstType, SecondType> = Omit<FirstType, keyof SecondType> & SecondType;
 
 const ab: Merge<Fooo, Bar> = { a: 1, b: 2 };
+
+type Responder = {
+	text?: () => string;
+	json?: () => string;
+	secure?: boolean;
+};
+
+type RequireAtLeastOne<
+    ObjectType,
+    KeysType extends keyof ObjectType = keyof ObjectType,
+> = KeysType extends keyof ObjectType ? 
+  ObjectType & Required<Pick<ObjectType, KeysType>>: 
+  never;
+
+// 表示当前类型至少包含 'text' 或 'json' 键
+const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
+	text: () => '{"message": "ok"}',
+	secure: true
+};
+
+interface Ffoo {
+  [key: string]: any;
+  [key: number]: any;
+  bar(): void;
+}
+
+type RemoveIndexSignature<T> = {
+  [key in keyof T as string extends key ? never : number extends key ? never: key]: T[key] 
+}
+
+type FooWithOnlyBar = RemoveIndexSignature<Ffoo>; //{ bar: () => void; }
+
+type Fo2o = {
+  readonly a: number;
+  readonly b: string;
+  readonly c: boolean;
+};
+
+type Mutable<T, Keys extends keyof T = keyof T> = {
+  -readonly[P in Keys]: T[P]
+} & Omit<T, Keys>
+
+const mutableFoo: Mutable<Fo2o, 'a'> = { a: 1, b: '2', c: true };
+
+mutableFoo.a = 3; // OK
+mutableFoo.b = '6'; // Cannot assign to 'b' because it is a read-only property.
+
+type IsUnion<T, U = T> = T extends U? ([T,U] extends [U,T] ?  false: true) : never;
+
+type I01 = IsUnion<string|number | symbol> // true
+type I11 = IsUnion<string|never | symbol> // false
+type I21 =IsUnion<string|any | symbol> // false
+
+type IsNever<T> = [T] extends [never] ? true : false
+type I02 = IsNever<never> // true
+type I12 = IsNever<never | string> // false
+type I22 = IsNever<null> // false
+type I23 = IsNever<any>
+
+type Reverse<
+  T extends Array<any>,
+  R extends Array<any> = []
+> = T extends [infer A,... infer B]? Reverse<B,[A,...R]> : R 
+
+type R0 = Reverse<[]> // []
+type R1 = Reverse<[1, 2, 3, 4]> // [3, 2, 1]
+
+type Item = 'semlinker,lolo,kakuqo';
+
+type Split<
+	S extends string, 
+	Delimiter extends string,
+> = S extends `${infer a}${Delimiter}${infer b}` ? [a, ...Split<b, Delimiter>] : [S]
+
+type ElementType = Split<Item, ','>; // ["semlinker", "lolo", "kakuqo"]
+
+type ToPath<S extends string> = S extends `${infer A}.${infer B}`
+  ? [...ToPath<A>, ...ToPath<B>]
+  : S extends `${infer A}[${infer B}]`
+    ? [A, B]
+    : [S]
+
+
+type pa = ToPath<'foo.bar.baz'> //=> ['foo', 'bar', 'baz']
+type ppa = ToPath<'foo[0].bar[1].baz'> //=> ['foo', '0', 'bar', 'baz']
+
+declare const config: Chainable
+
+type ITypes = string | number | symbol;
+type Chainable<T = {}> = {
+  option<K extends ITypes, V extends any>(key: K, value: V): Chainable<T & Record<K, V>>;
+  get(): T;
+}
+
+const result = config
+  .option('age', 7)
+  .option('name', 'lolo')
+  .option('address', { value: 'XiaMen' })
+  .get()
+
+type ResultType = typeof result  
+// 期望 ResultType 的类型是：
+// {
+//   age: number
+//   name: string
+//   address: {
+//     value: string
+//   }
+// }

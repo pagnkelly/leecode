@@ -111,7 +111,7 @@ type DeepFlat<T extends any[]> = T extends (infer P)[] ? P extends any[] ? DeepF
 
 type DeepTestResult = NaiveFlat<Deep>
 
-type p = 's' | 'number' | 'symbol'
+type p = 'string' | 'number' | 'symbol'
 type EmptyObject = {
  [k in p] : never
 } 
@@ -164,7 +164,9 @@ type NamesComma = JoinStrArray<Names, ","> // "Sem,Lolo,Kaquko"
 type NamesSpace = JoinStrArray<Names, " "> // "Sem Lolo Kaquko"
 type NamesStars = JoinStrArray<Names, "⭐️"> // "Sem⭐️Lolo⭐️Kaquko"
 
-type Trim<V extends string, res extends string = ''> = // 你的实现代码
+type Left<V> = V extends ` ${infer a}` ? Left<a> : V;
+type Right<V> = V extends `${infer a} ` ? Right<a> : V
+type Trim<V extends string, res extends string = ''> = Right<Left<V>>
 
 // 测试用例
 type se = Trim<' semlinker '>;
@@ -203,3 +205,44 @@ type Shift<T extends any[]> = T extends [f: any, ...args: infer Arg] ? Arg : nev
 type S0 = Shift<[1, 2, 3]> // [2, 3]
 type S1 = Shift<[string,number,boolean]> // [number,boolean]
 
+type Push<T extends any[], V> = [...T, V]
+// 测试用例
+type Arr00 = Push<[], 1> // [1]
+type Arr11 = Push<[1, 2, 3], 4> // [1, 2, 3, 4]
+ 
+type Includes<T extends Array<any>, E> = E extends T[number] ? true : false
+
+type I0 = Includes<[], 1> // false
+type I1 = Includes<[2, 2, 3, 1], 2> // true
+type I2 = Includes<[2, 3, 3, 1], 1> // true
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
+type a<U> = U extends any ? U : never
+type s = a<'1' | '2'>
+// 测试用例
+type U0 = UnionToIntersection<string | number> // never
+type U1 = UnionToIntersection<{ name: string } | { age: number }> // { name: string; } & { age: number; }
+
+type Person = {
+  id: string;
+  name: string;
+  age: number;
+  from?: string;
+  speak?: string;
+};
+
+type OptionalKeys<T> = {
+  [P in keyof T]: Pick<T, P> extends Required<Pick<T, P>> ? never : P
+}[keyof T]
+
+type PersonOptionalKeys = OptionalKeys<Person> // "from" | "speak"
+
+type Curry<
+    F extends (...args: any[]) => any,
+    P extends any[] = Parameters<F>,
+    R = ReturnType<F>
+    > = P extends [infer U, ...infer Arg] ? (arg: U) => Curry<F, Arg, R> : P extends [] ? () => R : never
+
+type F0 = Curry<() => Date>; // () => Date
+type F1 = Curry<(a: number) => Date>; // (arg: number) => Date
+type F2 = Curry<(a: number, b: string) => Date>; //  (arg_0: number) => (b: string) => Date

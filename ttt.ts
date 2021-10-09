@@ -1,3 +1,23 @@
+type a1 = {
+  a: 1,
+  b: '2',
+  d: 3
+}
+type a2 = {
+  a: 1,
+  b: 2,
+  c?: 3
+}
+
+type PPPP = Pick<a1, 'a'>
+type PAPA = Partial<a1>
+type RRRR = Required<a2>
+type EEEE = Exclude<keyof a2, keyof a1>
+type XXXX = Extract<keyof a2, keyof a1>
+type OOOO = Omit<a2, keyof a1>
+type NNNN = NonNullable<'1' | '2' | undefined | null>
+
+
 type User = {
   id: number;
   kind: string;
@@ -246,3 +266,16 @@ type Curry<
 type F0 = Curry<() => Date>; // () => Date
 type F1 = Curry<(a: number) => Date>; // (arg: number) => Date
 type F2 = Curry<(a: number, b: string) => Date>; //  (arg_0: number) => (b: string) => Date
+
+type Fooo = {
+	a: number;
+	b: string;
+};
+
+type Bar = {
+	b: number;
+};
+
+type Merge<FirstType, SecondType> = Omit<FirstType, keyof SecondType> & SecondType;
+
+const ab: Merge<Fooo, Bar> = { a: 1, b: 2 };

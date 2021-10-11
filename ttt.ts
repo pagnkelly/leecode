@@ -29,7 +29,7 @@ function makeCustomer<T extends User>(u: T): T {
   // '{ id: number; kind: string; }' is assignable to the constraint of type 'T', 
   // but 'T' could be instantiated with a different subtype of constraint 'User'.
   return {
-    // ...u,
+    ...u,
     id: u.id,
     kind: 'customer'
   }
@@ -388,3 +388,183 @@ type ResultType = typeof result
 //     value: string
 //   }
 // }
+type Repeat<T, C extends number, A extends any[] = []> = A["length"] extends C
+  ? A
+  : Repeat<T, C, Push<A, T>>;
+
+type R03 = Repeat<0, 0>; // []
+type R13 = Repeat<1, 1>; // [1]
+type R23 = Repeat<number, 2>; // [number, number]
+
+type RepeatString<
+  T extends string,
+  C extends number,
+  S extends any[] = []
+> = S["length"] extends C ? JoinStrArray<S, ''> : RepeatString<T, C, Push<S, T>>
+
+type S01 = RepeatString<"a", 0>; // ''
+type S12 = RepeatString<"a", 2>; // 'aa'
+type S23 = RepeatString<"ab", 3>; // 'ababab'
+
+type ToNumber<T extends string, A extends any[] = []> = `${A["length"]}` extends T
+  ? A["length"]
+  : ToNumber<T, [...A, '']>;
+
+type T01 = ToNumber<"0">; // 0
+type T11 = ToNumber<"10">; // 10
+type T21 = ToNumber<"20">; // 20
+
+type SmallerThan<
+  N extends number,
+  M extends number,
+  A extends any[] = []
+> = A["length"] extends M
+  ? false
+  : A["length"] extends N
+    ? true
+    : SmallerThan<N, M, [...A, ""]>
+
+type S04 = SmallerThan<0, 1>; // true
+type S14 = SmallerThan<2, 0>; // false
+type S24 = SmallerThan<8, 10>; // true
+
+type CreateTuple<
+  T extends number,
+  A extends any[] = []
+> = A['length'] extends T ? A : CreateTuple<T, Push<A, ''>>
+
+type Add<
+  T extends number,
+  R extends number
+> = [...CreateTuple<T>, ...CreateTuple<R>]['length']
+  
+type A011 = Add<5, 5>; // 10
+type A111 = Add<8, 20>; // 28
+type A211 = Add<10, 30>; // 40
+
+
+type Filter<T extends any[], F, A extends any[] = []> = 
+  T extends [infer a, ...infer b] ? 
+  [a] extends [F] ?
+  Filter<b, F, [...A, a]> :
+  Filter<b, F, A> : 
+  A
+
+type F01 = Filter<[6, "lolo", 7, "semlinker", false], number>; // [6, 7]
+type F11 = Filter<["kakuqo", 2, ["ts"], "lolo"], string>; // ["kakuqo", "lolo"]
+type F21 = Filter<[0, true, any, "abao"], string>; // [any, "abao"]
+
+type Flat<T extends any[]> = T extends [infer a, ...infer b] ? a extends any[] ? [...Flat<a>, ...Flat<b>] : [a, ...Flat<b>] : []
+
+type F011 = Flat<[]> // []
+type F111 = Flat<['a', 'b', 'c']> // ["a", "b", "c"]
+type F211 = Flat<['a', ['b', 'c'], ['d', ['e', ['f']]]]> // ["a", "b", "c", "d", "e", "f"]
+
+type StartsWith<T extends string, U extends string> = T extends `${U}${infer Rest}` ? true : false;
+
+type S011 = StartsWith<'123', '12'> // true
+type S111 = StartsWith<'123', '13'> // false
+type S211 = StartsWith<'123', '1234'> // false
+type S311 = StartsWith<'123', '123'> // true
+
+type EndsWith<T extends string, U extends string> = T extends `${infer Head}${U}` ? true : false;
+
+type E011 = EndsWith<'123', '23'> // true
+type E111 = EndsWith<'123', '13'> // false
+type E211 = EndsWith<'123', '123'> // true
+
+// type IsAny<T> = [T] extends [string | number | symbol] ? [T] extends [never] ? false : true : false
+type IsAny<T> = 0 extends 1 & T ? true : false;
+type I0111 = IsAny<never> // false
+type I1111 = IsAny<unknown> // false
+type I2111 = IsAny<any> // true
+
+type AnyOf<T extends any[]> = // 你的实现代码
+
+type A0 = AnyOf<[]>; // false
+type A1 = AnyOf<[0, '', false, [], {}]> // false
+type A2 = AnyOf<[1, "", false, [], {}]> // true
+
+type Replace<
+  S extends string,
+  From extends string,
+  To extends string
+> = // 你的实现代码 
+  
+type R0 = Replace<'', '', ''> // ''
+type R1 = Replace<'foobar', 'bar', 'foo'> // "foofoo"
+type R2 = Replace<'foobarbar', 'bar', 'foo'> // "foofoobar"
+
+type ReplaceAll<
+  S extends string,
+  From extends string,
+  To extends string
+> = // 你的实现代码 
+
+type R0 = ReplaceAll<'', '', ''> // ''
+type R1 = ReplaceAll<'barfoo', 'bar', 'foo'> // "foofoo"
+type R2 = ReplaceAll<'foobarbar', 'bar', 'foo'> // "foofoofoo"
+type R3 = ReplaceAll<'foobarfoobar', 'ob', 'b'> // "fobarfobar"
+
+type IndexOf<A extends any[], Item> = // 你的实现代码
+
+type Arr = [1, 2, 3, 4, 5]
+type I0 = IndexOf<Arr, 0> // -1
+type I1 = IndexOf<Arr, 1> // 0
+type I2 = IndexOf<Arr, 3> // 2
+
+type Permutation<T, K=T> = // 你的实现代码
+
+// ["a", "b"] | ["b", "a"]
+type P0 = Permutation<'a' | 'b'>  // ['a', 'b'] | ['b' | 'a']
+// type P1 = ["a", "b", "c"] | ["a", "c", "b"] | ["b", "a", "c"] 
+// | ["b", "c", "a"] | ["c", "a", "b"] | ["c", "b", "a"]
+type P1 = Permutation<'a' | 'b' | 'c'> 
+
+type Unpacked<T> = // 你的实现代码
+
+type T00 = Unpacked<string>;  // string
+type T01 = Unpacked<string[]>;  // string
+type T02 = Unpacked<() => string>;  // string
+type T03 = Unpacked<Promise<string>>;  // string
+type T04 = Unpacked<Unpacked<Promise<string>[]>>;  // string
+type T05 = Unpacked<any>;  // any
+type T06 = Unpacked<never>;  // never
+
+type JsonifiedObject<T extends object> = // 你的实现代码
+
+type MyObject = {
+  str: "literalstring",
+  fn: () => void,
+  date: Date,
+  customClass: MyClass,
+  obj: {
+    prop: "property",
+    clz: MyClass,
+    nested: { attr: Date }
+  },
+}
+
+declare class MyClass {
+  toJSON(): "MyClass";
+}
+
+/**
+ * type JsonifiedMyObject = {
+ *  str: "literalstring";
+ *  fn: never;
+ *  date: string;
+ *  customClass: "MyClass";
+ *  obj: JsonifiedObject<{
+ *    prop: "property";
+ *    clz: MyClass;
+ *    nested: {
+ *      attr: Date;
+ *    };
+ *   }>;
+ * }
+*/
+type JsonifiedMyObject = Jsonified<MyObject>;
+declare let ex: JsonifiedMyObject;
+const z1: "MyClass" = ex.customClass;
+const z2: string = ex.obj.nested.attr;

@@ -113,7 +113,7 @@ type AppendArgument<F extends (...args: any) => any, A>
 type FinalFn = AppendArgument<Fn, boolean> 
 // (x: boolean, a: number, b: string) => number
 
-type NaiveFlat<T extends any[]> = {
+type NaiveFlat<T extends any[]> = { 
   [P in keyof T]: T[P] extends any[] ? T[P][number] : T[P]
 }[number]
 // type NaiveFlat<T extends any[]> = T extends (infer P)[] ? P extends any[] ? NaiveFlat<P> : P : never;
@@ -479,7 +479,13 @@ type I0111 = IsAny<never> // false
 type I1111 = IsAny<unknown> // false
 type I2111 = IsAny<any> // true
 
-type AnyOf<T extends any[]> = // 你的实现代码
+type NotEmptyObject<T> = T extends {} ? ({} extends T ? false : true) : true;
+type Flasy = 0 | "" | false | [];
+type AnyOf<T extends any[]> = T extends [infer First, ...infer Rest]
+  ? [First] extends [Flasy]
+    ? AnyOf<Rest>
+    : NotEmptyObject<First>
+  : false;
 
 type A0 = AnyOf<[]>; // false
 type A1 = AnyOf<[0, '', false, [], {}]> // false
@@ -489,47 +495,63 @@ type Replace<
   S extends string,
   From extends string,
   To extends string
-> = // 你的实现代码 
+> = S extends `${infer a}${From}${infer b}` ? `${a}${To}${b}` : S
   
-type R0 = Replace<'', '', ''> // ''
-type R1 = Replace<'foobar', 'bar', 'foo'> // "foofoo"
-type R2 = Replace<'foobarbar', 'bar', 'foo'> // "foofoobar"
+type R04 = Replace<'', '', ''> // ''
+type R14 = Replace<'foobar', 'bar', 'foo'> // "foofoo"
+type R24 = Replace<'foobarbar', 'bar', 'foo'> // "foofoobar"
+type R34 = Replace<'foobarbar', 'foo', 'bar'> // "barbarbar"
+type R44 = Replace<'foofoobar', 'bar', 'foo'> // "foofoofoo"
 
 type ReplaceAll<
   S extends string,
   From extends string,
   To extends string
-> = // 你的实现代码 
+> = S extends `${infer a}${From}${infer b}` ? `${a}${To}${ReplaceAll<b, From, To>}` : S
 
-type R0 = ReplaceAll<'', '', ''> // ''
-type R1 = ReplaceAll<'barfoo', 'bar', 'foo'> // "foofoo"
-type R2 = ReplaceAll<'foobarbar', 'bar', 'foo'> // "foofoofoo"
-type R3 = ReplaceAll<'foobarfoobar', 'ob', 'b'> // "fobarfobar"
+type R012 = ReplaceAll<'', '', ''> // ''
+type R112 = ReplaceAll<'barfoo', 'bar', 'foo'> // "foofoo"
+type R212 = ReplaceAll<'foobarbar', 'bar', 'foo'> // "foofoofoo"
+type R312 = ReplaceAll<'foobarfoobar', 'ob', 'b'> // "fobarfobar"
 
-type IndexOf<A extends any[], Item> = // 你的实现代码
-
+type IndexOf<A extends any[], Item, arr extends any[] = []> =
+  A extends [infer first, ...infer rest] ?
+    [first] extends [Item] ?
+    arr["length"] : 
+    IndexOf<rest, Item, [...arr, first]> :
+    -1  
 type Arr = [1, 2, 3, 4, 5]
-type I0 = IndexOf<Arr, 0> // -1
-type I1 = IndexOf<Arr, 1> // 0
-type I2 = IndexOf<Arr, 3> // 2
+type I011 = IndexOf<Arr, 0> // -1
+type I111 = IndexOf<Arr, 1> // 0
+type I211 = IndexOf<Arr, 3> // 2
 
-type Permutation<T, K=T> = // 你的实现代码
+type Om<T, I> = T extends I ? never : T;
+type Test<T extends any[], F, G = F> = T extends any[]
+  ? F | 1 extends 1
+    ? T
+    : F extends any
+    ? Test<[...T, F], Om<G, F>>
+    : T
+  : T;
+// type Permutation<T> = Test<[], T>;
 
+type Permutation<T, K = T> = [T] extends [never] ? [] : K extends K ? [K, ...Permutation<Exclude<T, K>>] : never
+type ssssd = 'a' | 'b'
 // ["a", "b"] | ["b", "a"]
 type P0 = Permutation<'a' | 'b'>  // ['a', 'b'] | ['b' | 'a']
 // type P1 = ["a", "b", "c"] | ["a", "c", "b"] | ["b", "a", "c"] 
 // | ["b", "c", "a"] | ["c", "a", "b"] | ["c", "b", "a"]
 type P1 = Permutation<'a' | 'b' | 'c'> 
 
-type Unpacked<T> = // 你的实现代码
+type Unpacked<T> = T => infer a exsnte ? a : never
 
-type T00 = Unpacked<string>;  // string
-type T01 = Unpacked<string[]>;  // string
-type T02 = Unpacked<() => string>;  // string
-type T03 = Unpacked<Promise<string>>;  // string
-type T04 = Unpacked<Unpacked<Promise<string>[]>>;  // string
-type T05 = Unpacked<any>;  // any
-type T06 = Unpacked<never>;  // never
+type T001 = Unpacked<string>;  // string
+type T011 = Unpacked<string[]>;  // string
+type T021 = Unpacked<() => string>;  // string
+type T031 = Unpacked<Promise<string>>;  // string
+type T041 = Unpacked<Unpacked<Promise<string>[]>>;  // string
+type T051 = Unpacked<any>;  // any
+type T061 = Unpacked<never>;  // never
 
 type JsonifiedObject<T extends object> = // 你的实现代码
 
@@ -568,3 +590,69 @@ type JsonifiedMyObject = Jsonified<MyObject>;
 declare let ex: JsonifiedMyObject;
 const z1: "MyClass" = ex.customClass;
 const z2: string = ex.obj.nested.attr;
+
+interface Person2 {
+  name: string;
+  age?: number;
+  gender?: number;
+}
+
+type ddd = { name: string } & ({ age: number, gender: number } | { age?: never, gender?: never })
+
+type RequireAllOrNone<T, K extends keyof T> = Omit<T, K> & (Required<Pick<T, K>> | Partial<Record<K, never>>)
+
+const p11: RequireAllOrNone<Person2, "age" | "gender"> = {
+  name: "lolo"
+};
+
+const p21: RequireAllOrNone<Person2, "age" | "gender"> = {
+  name: "lolo",
+  age: 7,
+  gender: 1
+};
+
+const p31: RequireAllOrNone<Person2, "age" | "gender"> = {
+// const p3: SetRequired<Person, "age" | "gender"> = {
+// const p3: Omit<Person, "age" | "gender"> = {
+  name: "lolo",
+  age: 7,
+};
+interface Person1 {
+  name: string;
+  age?: number;
+  gender?: number;
+}
+
+type ttt = { name: string } & ({ age: number, gender?: never } | { age?: never, gender: number })
+
+type RP<T, K> = {
+  
+};
+// 只能包含Keys中唯一的一个Key
+type RequireExactlyOne<T, K extends keyof T> = Omit<T, K> & RP<Pick<T, K>, K>
+
+const p1: RequireExactlyOne<Person, 'age' | 'gender'> = {
+  name: "lolo",
+  age: 7,
+};
+
+const p2: RequireExactlyOne<Person, 'age' | 'gender'> = {
+  name: "lolo",
+  gender: 1
+};
+
+// Error
+const p3: RequireExactlyOne<Person, 'age' | 'gender'> = {
+  name: "lolo",
+  age: 7,
+  gender: 1
+};
+
+
+
+type ConsistsOnlyOf<LongString extends string, Substring extends string> = LongString extends `${Substring}${infer B}` ?  B extends Substring ?  true : false : false
+
+type C0 = ConsistsOnlyOf<'aaa', 'a'> //=> true
+type C1 = ConsistsOnlyOf<'ababab', 'ab'> //=> true
+type C2 = ConsistsOnlyOf<'aBa', 'a'> //=> false
+type C3 = ConsistsOnlyOf<'', 'a'> //=> true

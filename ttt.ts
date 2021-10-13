@@ -622,27 +622,28 @@ interface Person1 {
   age?: number;
   gender?: number;
 }
-
+// 想要构建成这个样子才可以满足条件
 type ttt = { name: string } & ({ age: number, gender?: never } | { age?: never, gender: number })
 
 type RP<T, K> = {
-  
-};
+  [P in keyof T]: P extends K ? T & Partial<Record<P, never>> : never
+}[keyof T];
+
 // 只能包含Keys中唯一的一个Key
 type RequireExactlyOne<T, K extends keyof T> = Omit<T, K> & RP<Pick<T, K>, K>
 
-const p1: RequireExactlyOne<Person, 'age' | 'gender'> = {
+const p1: RequireExactlyOne<Person1, 'age' | 'gender'> = {
   name: "lolo",
   age: 7,
 };
 
-const p2: RequireExactlyOne<Person, 'age' | 'gender'> = {
+const p2: RequireExactlyOne<Person1, 'age' | 'gender'> = {
   name: "lolo",
   gender: 1
 };
 
 // Error
-const p3: RequireExactlyOne<Person, 'age' | 'gender'> = {
+const p3: RequireExactlyOne<Person1, 'age' | 'gender'> = {
   name: "lolo",
   age: 7,
   gender: 1

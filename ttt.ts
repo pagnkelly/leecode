@@ -553,7 +553,18 @@ type T041 = Unpacked<Unpacked<Promise<string>[]>>;  // string
 type T051 = Unpacked<any>;  // any
 type T061 = Unpacked<never>;  // never
 
-type JsonifiedObject<T extends object> = // 你的实现代码
+type Jsonified<T extends object> = {
+  [k in keyof T]: T[k] extends object
+    ? "toJSON" extends keyof T[k]
+      ? T[k]["toJSON"] extends (...args: any[]) => infer R
+        ? R
+        : never
+      : T[k] extends (...args: any[]) => any
+        ? never
+        : Jsonified<T[k]>
+    : T[k];
+};
+
 
 type MyObject = {
   str: "literalstring",
@@ -649,10 +660,11 @@ const p3: RequireExactlyOne<Person1, 'age' | 'gender'> = {
   gender: 1
 };
 
-
-
-type ConsistsOnlyOf<LongString extends string, Substring extends string> = LongString extends `${Substring}${infer B}` ?  B extends Substring ?  true : false : false
-
+type ConsistsOnlyOf<LongString extends string, Substring extends string> = LongString extends ''
+  ? true
+  : LongString extends `${Substring}${infer B}`
+    ? ConsistsOnlyOf<B, Substring>
+    : false;
 type C0 = ConsistsOnlyOf<'aaa', 'a'> //=> true
 type C1 = ConsistsOnlyOf<'ababab', 'ab'> //=> true
 type C2 = ConsistsOnlyOf<'aBa', 'a'> //=> false

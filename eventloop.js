@@ -37,11 +37,9 @@ console.log('script end')
 // script start
 // async1 start
 // async2
-// promise1
-// pppp
+// promise1 start
+// promise1 end
 // script end
 // async1 end
-// async2
 // promise2
-// async2 end
 // settimeout

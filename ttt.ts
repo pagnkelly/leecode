@@ -1,3 +1,5 @@
+// 1, 3, 4
+
 type a1 = {
   a: 1,
   b: '2',
@@ -99,7 +101,7 @@ interface Example {
 }
 
 // 测试用例：
-type StringKeysOnly = ConditionalPick<Example, {} | string | number>;
+type StringKeysOnly = ConditionalPick<Example, string>;
 //=> {a: string}
 
 type ConditionalPick<T, K> = {
@@ -129,8 +131,8 @@ type Deep = [['a'], ['b', 'c'], [['d']], [[[['e']]]]];
 
 type DeepFlat<T extends any[]> = T extends (infer P)[] ? P extends any[] ? DeepFlat<P> : P : never;
 
-type DeepTestResult = NaiveFlat<Deep>
-
+type NativeTestResult = NaiveFlat<Deep>
+type DeepTestResult = DeepFlat<Deep>
 type p = 'string' | 'number' | 'symbol'
 type EmptyObject = {
  [k in p] : never
@@ -669,3 +671,4 @@ type C0 = ConsistsOnlyOf<'aaa', 'a'> //=> true
 type C1 = ConsistsOnlyOf<'ababab', 'ab'> //=> true
 type C2 = ConsistsOnlyOf<'aBa', 'a'> //=> false
 type C3 = ConsistsOnlyOf<'', 'a'> //=> true
+
